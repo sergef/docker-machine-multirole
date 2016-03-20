@@ -1,0 +1,37 @@
+consul:
+  image: consul
+  restart: always
+  ports:
+    - 8300:8300
+    - 8301:8301
+    - 8301:8301/udp
+    - 8302:8302
+    - 8302:8302/udp
+    - 8400:8400
+    - 8500:8500
+    - 53:8600/udp
+  command: |
+    agent -server
+    -dc ${CLUSTER_DC}
+    -domain ${CLUSTER_DOMAIN}
+    -config-dir=/config
+    -bootstrap
+    -advertise=${HOST_IP}
+    -node=${HOST_NAME}
+  links:
+    - splunk
+  log_driver: splunk
+  log_opt:
+    splunk-token: ${SPLUNK_TOKEN}
+    splunk-url: https://${HOST_IP}:8088
+    splunk-insecureskipverify: "true"
+    tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
+    labels: "type,location consul"
+
+splunk:
+  image: splunk
+  restart: always
+  ports:
+    - "8000:8000"
+    - "8088:8088"
+    - "514:514"
